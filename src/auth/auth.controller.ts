@@ -1,23 +1,34 @@
-import { Controller, Get, Post } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Get,
+	Post,
+	UsePipes,
+	ValidationPipe
+} from '@nestjs/common'
+import { ApiTags } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
+import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dtos'
 
+@ApiTags('Auth')
+@UsePipes(new ValidationPipe())
 @Controller('/auth')
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
 	@Post('/register')
-	async register(): Promise<string> {
-		return this.authService.register()
+	async register(@Body() dto: RegisterDto): Promise<string> {
+		return this.authService.register(dto)
 	}
 
 	@Post('/login')
-	async login(): Promise<string> {
-		return this.authService.login()
+	async login(@Body() dto: LoginDto): Promise<string> {
+		return this.authService.login(dto)
 	}
 
 	@Post('/refresh-token')
-	async refreshToken(): Promise<string> {
-		return this.authService.refreshToken()
+	async refreshToken(@Body() dto: RefreshTokenDto): Promise<string> {
+		return this.authService.refreshToken(dto)
 	}
 
 	@Get('/validate')
