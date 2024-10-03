@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
-import { AuthResponseDto } from '../auth/dto/auth.response'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'
@@ -41,12 +40,12 @@ export class UserController {
 	}
 
 	@Post()
-	async create(@Body() dto: CreateUserDto): Promise<AuthResponseDto | null> {
+	async create(@Body() dto: CreateUserDto): Promise<any> {
 		return this.userService.create(dto)
 	}
 
 	@Put()
-	async update(@Body() dto: UpdateUserDto): Promise<UserDto | null> {
+	async update(@Body() dto: UpdateUserDto): Promise<any> {
 		return this.userService.update(dto)
 	}
 
@@ -56,7 +55,5 @@ export class UserController {
 	}
 
 	@Patch(':id')
-	async toggle(@Param('id') id: UUID): Promise<void> {
-		return this.userService.toggle(id)
-	}
+	async toggle(@Param('id') id: UUID): Promise<void> {}
 }

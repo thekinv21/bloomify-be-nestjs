@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger'
 
-import { IsNotEmpty, IsString, IsUUID, MinLength } from 'class-validator'
+import {
+	IsBoolean,
+	IsNotEmpty,
+	IsOptional,
+	IsString,
+	IsUUID,
+	MinLength
+} from 'class-validator'
 import { UUID } from 'crypto'
 
 export class CreateUserDto {
@@ -44,6 +51,13 @@ export class CreateUserDto {
 	@IsString()
 	@IsNotEmpty()
 	password: string
+
+	@ApiProperty({
+		example: 'true'
+	})
+	@IsOptional()
+	@IsBoolean()
+	isActive: boolean
 }
 
 export class UpdateUserDto extends CreateUserDto {
