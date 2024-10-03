@@ -28,7 +28,6 @@ export class RegisterDto {
 		required: true
 	})
 	@IsString()
-	@IsString()
 	@IsNotEmpty()
 	firstName: string
 
@@ -36,7 +35,6 @@ export class RegisterDto {
 		example: 'Jobs',
 		required: true
 	})
-	@IsString()
 	@IsString()
 	@IsNotEmpty()
 	lastName: string

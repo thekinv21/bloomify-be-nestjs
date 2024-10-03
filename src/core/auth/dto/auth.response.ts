@@ -1,5 +1,7 @@
+import { UserDto } from 'src/core/user/dto/user.response'
+
 export class AuthResponseDto {
-	user: any
+	user: UserDto
 	token: TokenResponse
 }
 
