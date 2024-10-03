@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
-import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.dtos'
+import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.request'
 
 @ApiTags('Auth')
 @UsePipes(new ValidationPipe())
