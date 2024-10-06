@@ -27,8 +27,8 @@ export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
 	): Observable<TypeApiResponse<T>> {
 		return next.handle().pipe(
 			map((res: Response) => this.responseHandler(res, context)),
-			catchError((err: HttpException) =>
-				throwError(() => this.errorHandler(err, context))
+			catchError((ex: HttpException) =>
+				throwError(() => this.errorHandler(ex, context))
 			)
 		)
 	}
@@ -43,11 +43,11 @@ export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
 				? exception.getStatus()
 				: HttpStatus.INTERNAL_SERVER_ERROR
 
-		let originalMessage = exception.message
+		let exceptionMessage = exception.message
 		let customMessage: string | Array<{ errorMessage: string }> =
-			originalMessage
+			exceptionMessage
 
-		if (exception.name === 'BadRequestException') {
+		if (exception && exception?.name === 'BadRequestException') {
 			const exceptionResponse = exception.getResponse()
 			if (
 				typeof exceptionResponse === 'object' &&
@@ -69,7 +69,7 @@ export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
 			status: status,
 			path: request.url,
 			message: customMessage,
-			exception: exception.name,
+			exception: exception?.name ?? exception,
 			timestamp: new Date().toISOString()
 		})
 	}

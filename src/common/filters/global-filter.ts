@@ -9,21 +9,25 @@ import { Request, Response } from 'express'
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-	catch(exception: any, host: ArgumentsHost) {
+	catch(exception: HttpException, host: ArgumentsHost) {
 		const ctx = host.switchToHttp()
 		const response = ctx.getResponse<Response>()
 		const request = ctx.getRequest<Request>()
+
+		if (response?.headersSent) {
+			return
+		}
 
 		const status =
 			exception instanceof HttpException
 				? exception.getStatus()
 				: HttpStatus.INTERNAL_SERVER_ERROR
 
-		let originalMessage = exception.message
+		let exceptionMessage = exception?.message
 		let customMessage: string | Array<{ errorMessage: string }> =
-			originalMessage
+			exceptionMessage
 
-		if (exception.name === 'BadRequestException') {
+		if (exception && exception?.name === 'BadRequestException') {
 			const exceptionResponse = exception.getResponse()
 			if (
 				typeof exceptionResponse === 'object' &&
@@ -45,7 +49,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 			status,
 			path: request.url,
 			message: customMessage,
-			exception: exception.name,
+			exception: exception?.name ? exception?.name : exception,
 			timestamp: new Date().toISOString()
 		})
 	}
