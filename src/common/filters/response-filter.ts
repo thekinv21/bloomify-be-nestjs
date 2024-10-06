@@ -6,18 +6,16 @@ import {
 	Injectable,
 	NestInterceptor
 } from '@nestjs/common'
-import { Response } from 'express'
 import { Observable, throwError } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
+import {
+	TypeNonPaginatedApiResponse,
+	TypePaginatedApiResponse
+} from '../dto/base.dto'
 
-export type TypeApiResponse<T> = {
-	isSuccess: boolean
-	status: number
-	path: string
-	message?: string | Array<{ errorMessage: string }>
-	content: Response<string, any>
-	timestamp: string
-}
+export type TypeApiResponse<T> =
+	| TypeNonPaginatedApiResponse<T>
+	| TypePaginatedApiResponse<T>
 
 @Injectable()
 export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
@@ -26,66 +24,81 @@ export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
 		next: CallHandler
 	): Observable<TypeApiResponse<T>> {
 		return next.handle().pipe(
-			map((res: Response) => this.responseHandler(res, context)),
-			catchError((ex: HttpException) =>
-				throwError(() => this.errorHandler(ex, context))
+			map((res: T | T[] | TypePaginatedApiResponse<T>) =>
+				this.handleResponse(res, context)
+			),
+			catchError((error: HttpException) =>
+				throwError(() => this.handleError(error, context))
 			)
 		)
 	}
 
-	errorHandler(exception: HttpException, context: ExecutionContext) {
-		const ctx = context.switchToHttp()
-		const response = ctx.getResponse()
-		const request = ctx.getRequest()
-
+	private handleError(exception: HttpException, context: ExecutionContext) {
+		const response = context.switchToHttp().getResponse()
+		const req = context.switchToHttp().getRequest()
 		const status =
 			exception instanceof HttpException
 				? exception.getStatus()
 				: HttpStatus.INTERNAL_SERVER_ERROR
 
-		let exceptionMessage = exception.message
-		let customMessage: string | Array<{ errorMessage: string }> =
-			exceptionMessage
+		let message: string | Array<{ errorMessage: string }> = exception.message
 
-		if (exception && exception?.name === 'BadRequestException') {
-			const exceptionResponse = exception.getResponse()
-			if (
-				typeof exceptionResponse === 'object' &&
-				'message' in exceptionResponse
-			) {
-				const message = exceptionResponse['message']
-				if (Array.isArray(message)) {
-					customMessage = message.map((msg: string) => ({
-						errorMessage: msg
-					}))
-				} else {
-					customMessage = message as string
-				}
+		if (exception.name === 'BadRequestException') {
+			const errorResponse = exception.getResponse()
+			if (typeof errorResponse === 'object' && 'message' in errorResponse) {
+				message = Array.isArray(errorResponse['message'])
+					? errorResponse['message'].map((msg: string) => ({
+							errorMessage: msg
+						}))
+					: (errorResponse['message'] as string)
 			}
 		}
 
 		response.status(status).json({
 			isSuccess: false,
-			status: status,
-			path: request.url,
-			message: customMessage,
-			exception: exception?.name ?? exception,
+			status,
+			path: req.url,
+			message,
+			exception: exception.name,
 			timestamp: new Date().toISOString()
 		})
 	}
 
-	responseHandler(res: Response, context: ExecutionContext) {
-		const ctx = context.switchToHttp()
-		const response = ctx.getResponse()
-		const request = ctx.getRequest()
-		const statusCode = response.statusCode
+	private handleResponse(
+		res: T | T[] | TypePaginatedApiResponse<T>,
+		context: ExecutionContext
+	): TypeApiResponse<T> {
+		const response = context.switchToHttp().getResponse()
+		const req = context.switchToHttp().getRequest()
+
+		const page = parseInt(req.query.page, 0)
+		const pageSize = parseInt(req.query.pageSize, 10)
+		const status = response.statusCode
+
+		if (res && res['total']) {
+			const totalPages = Math.ceil(res['total'] / pageSize)
+			return {
+				isSuccess: true,
+				status,
+				path: req.url,
+				timestamp: new Date().toISOString(),
+				total: res['total'],
+				page,
+				pageSize,
+				isFirstPage: page === 0,
+				isLastPage: page === totalPages - 1,
+				isEmpty: res['content']?.length > 0 ? false : true,
+				totalPages: totalPages,
+				content: res['content']
+			} as TypePaginatedApiResponse<T>
+		}
 
 		return {
 			isSuccess: true,
-			status: statusCode,
-			path: request.url,
+			status,
+			path: req.url,
 			timestamp: new Date().toISOString(),
 			content: res
-		}
+		} as TypeNonPaginatedApiResponse<T>
 	}
 }

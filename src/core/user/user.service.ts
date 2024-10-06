@@ -8,6 +8,7 @@ import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
 import { PrismaService } from '@/root/prisma/prisma.service'
+import { PaginatedDto, PaginationDto } from '../../common/dto/base.dto'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
@@ -15,11 +16,27 @@ import { UserDto } from './dto/user.response'
 export class UserService {
 	constructor(private readonly prismaService: PrismaService) {}
 
-	async getAll(): Promise<UserDto[]> {
-		const users = await this.prismaService.user.findMany({
-			where: { isActive: true }
-		})
-		return plainToInstance(UserDto, users)
+	async getAll(pagination: PaginationDto): Promise<PaginatedDto<UserDto[]>> {
+		const { page, pageSize } = pagination
+
+		const skip = Number(page) * Number(pageSize)
+		const take = Number(pageSize)
+
+		const [users, total] = await Promise.all([
+			this.prismaService.user.findMany({
+				skip,
+				take,
+				where: { isActive: true }
+			}),
+			this.prismaService.user.count({ where: { isActive: true } })
+		])
+
+		const userDtoList = plainToInstance(UserDto, users)
+
+		return {
+			total,
+			content: userDtoList
+		}
 	}
 
 	async getById(id: UUID): Promise<UserDto> {
