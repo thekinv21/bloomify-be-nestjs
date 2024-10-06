@@ -1,6 +1,10 @@
 import { Exclude, Expose } from 'class-transformer'
+import { UUID } from 'crypto'
 
 export class UserDto {
+	@Expose()
+	id: UUID
+
 	@Expose()
 	firstName: string
 

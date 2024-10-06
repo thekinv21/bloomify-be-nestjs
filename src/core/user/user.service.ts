@@ -128,7 +128,7 @@ export class UserService {
 		return plainToInstance(UserDto, user)
 	}
 
-	private async isUnique(username: string, email: string): Promise<void> {
+	async isUnique(username: string, email: string): Promise<void> {
 		const isExistEmail = await this.prismaService.user.findUnique({
 			where: {
 				email: email?.toLowerCase()
