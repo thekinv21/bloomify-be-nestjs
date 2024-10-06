@@ -6,7 +6,8 @@ import {
 import { hash } from 'argon2'
 import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
-import { PrismaService } from 'prisma/prisma.service'
+
+import { PrismaService } from '@/root/prisma/prisma.service'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
