@@ -10,17 +10,14 @@ export class BaseDto {
 }
 
 export class PaginationDto {
-	@IsOptional()
 	@Transform(({ value }) => Number(value))
 	@IsNumber()
 	@Min(0)
-	page?: number
+	page: number
 
-	@IsOptional()
 	@Transform(({ value }) => Number(value))
 	@IsNumber()
-	@Min(10)
-	pageSize?: number
+	pageSize: number
 
 	@IsOptional()
 	@IsString()
@@ -29,4 +26,34 @@ export class PaginationDto {
 	@IsOptional()
 	@IsString()
 	orderBy?: 'asc' | 'desc'
+}
+
+export type TypeNonPaginatedApiResponse<T> = {
+	isSuccess: boolean
+	status: number
+	path: string
+	message?: string | Array<{ errorMessage: string }>
+	timestamp: string
+	content: T
+}
+
+export type TypePaginatedApiResponse<T> = {
+	isSuccess: boolean
+	status: number
+	path: string
+	message?: string | Array<{ errorMessage: string }>
+	timestamp: string
+	total: number
+	page: number
+	pageSize: number
+	isFirstPage: boolean
+	isLastPage: boolean
+	isEmpty: boolean
+	totalPages: number
+	content: T[]
+}
+
+export class PaginatedDto<T> {
+	total: number
+	content: T
 }
