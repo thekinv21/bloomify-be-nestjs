@@ -20,3 +20,13 @@ model User {
 
   @@map("user")
 }
+
+model Token {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique @db.VarChar(1000)
+  createdAt DateTime? @default(now()) @map("created_at")
+  isActive  Boolean   @default(true) @map("is_active")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("token")
+}

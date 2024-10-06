@@ -1,14 +1,19 @@
 import {
 	Body,
 	Controller,
-	Get,
 	Post,
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
-import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.request'
+import {
+	LoginDto,
+	RefreshTokenDto,
+	RegisterDto,
+	TokenDto
+} from './dto/auth.request'
+import { AuthResponseDto, TokenResponse } from './dto/auth.response'
 
 @ApiTags('Auth')
 @UsePipes(new ValidationPipe())
@@ -17,22 +22,22 @@ export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
 	@Post('/register')
-	async register(@Body() dto: RegisterDto): Promise<string> {
+	async register(@Body() dto: RegisterDto): Promise<AuthResponseDto | null> {
 		return this.authService.register(dto)
 	}
 
 	@Post('/login')
-	async login(@Body() dto: LoginDto): Promise<string> {
+	async login(@Body() dto: LoginDto): Promise<AuthResponseDto | null> {
 		return this.authService.login(dto)
 	}
 
 	@Post('/refresh-token')
-	async refreshToken(@Body() dto: RefreshTokenDto): Promise<string> {
+	async refresh(@Body() dto: RefreshTokenDto): Promise<TokenResponse | null> {
 		return this.authService.refreshToken(dto)
 	}
 
-	@Get('/validate')
-	async validateUser(): Promise<string> {
-		return this.authService.validateUser()
+	@Post('/logout')
+	async logout(@Body() dto: TokenDto): Promise<void> {
+		return this.authService.logout(dto)
 	}
 }

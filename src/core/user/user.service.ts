@@ -6,7 +6,8 @@ import {
 import { hash } from 'argon2'
 import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
-import { PrismaService } from 'prisma/prisma.service'
+
+import { PrismaService } from '@/root/prisma/prisma.service'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
@@ -128,7 +129,7 @@ export class UserService {
 		return plainToInstance(UserDto, user)
 	}
 
-	private async isUnique(username: string, email: string): Promise<void> {
+	async isUnique(username: string, email: string): Promise<void> {
 		const isExistEmail = await this.prismaService.user.findUnique({
 			where: {
 				email: email?.toLowerCase()
