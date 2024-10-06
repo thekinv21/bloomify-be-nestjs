@@ -73,11 +73,13 @@ export class RefreshTokenDto {
 	})
 	@IsString()
 	@IsNotEmpty()
-	accessToken: string
+	refreshToken: string
 }
 
 export class TokenDto {
+	@IsNotEmpty()
 	accessToken: string
+
+	@IsNotEmpty()
 	refreshToken: string
-	expiryDate?: string
 }

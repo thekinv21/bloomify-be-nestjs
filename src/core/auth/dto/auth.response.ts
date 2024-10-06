@@ -8,5 +8,6 @@ export class AuthResponseDto {
 export class TokenResponse {
 	accessToken: string
 	refreshToken: string
-	expiryDate: string
+	accessTokenExpiryDate: string
+	refreshTokenExpiryDate: string
 }
