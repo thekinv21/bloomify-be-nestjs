@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { UUID } from 'crypto'
+
+import { PrismaService } from '@/root/prisma/prisma.service'
 import { TokenResponse } from '../dto/auth.response'
 
 @Injectable()
 export class JwtAuthService {
 	constructor(
 		private readonly envConfig: ConfigService,
-		private readonly jwt: JwtService
+		private readonly jwt: JwtService,
+		private readonly prismaService: PrismaService
 	) {}
 
 	async generateTokens(userId: UUID) {
@@ -39,5 +42,45 @@ export class JwtAuthService {
 		}
 
 		return token
+	}
+
+	async addToBlacklist(token: string): Promise<void> {
+		await this.prismaService.token.create({
+			data: {
+				token: token,
+				isActive: false
+			}
+		})
+	}
+
+	async isTokenBlacklisted(token: string): Promise<boolean> {
+		const invalidToken = await this.prismaService.token.findUnique({
+			where: { token: token, isActive: false }
+		})
+		return !!invalidToken
+	}
+
+	async verifyToken(accessToken: string) {
+		const isBlacklisted = await this.isTokenBlacklisted(accessToken)
+
+		if (isBlacklisted) {
+			throw new UnauthorizedException('Token is expired or Invalid!')
+		}
+
+		const decodedAccessToken = await this.jwt.decode(accessToken)
+
+		if (!decodedAccessToken) {
+			throw new UnauthorizedException('Token is Invalid!')
+		}
+
+		const currentTime = Math.floor(Date.now() / 1000)
+		const tokenTime = decodedAccessToken?.exp
+
+		if (tokenTime && currentTime > tokenTime) {
+			await this.addToBlacklist(accessToken)
+			throw new UnauthorizedException('Access Token is expired!')
+		}
+
+		return decodedAccessToken
 	}
 }
