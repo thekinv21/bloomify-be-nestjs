@@ -1,14 +1,18 @@
 import {
 	Body,
 	Controller,
-	Get,
 	Post,
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
-import { LoginDto, RefreshTokenDto, RegisterDto } from './dto/auth.request'
+import {
+	LoginDto,
+	RefreshTokenDto,
+	RegisterDto,
+	TokenDto
+} from './dto/auth.request'
 import { AuthResponseDto, TokenResponse } from './dto/auth.response'
 
 @ApiTags('Auth')
@@ -32,8 +36,8 @@ export class AuthController {
 		return this.authService.refreshToken(dto)
 	}
 
-	@Get('/logout')
-	async logout(): Promise<void> {
-		return this.authService.logout()
+	@Post('/logout')
+	async logout(@Body() dto: TokenDto): Promise<void> {
+		return this.authService.logout(dto)
 	}
 }
