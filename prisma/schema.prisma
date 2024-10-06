@@ -3,17 +3,20 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   firstName String
   lastName  String
-  username  String   @unique
-  email     String   @unique
+  username  String    @unique
+  email     String    @unique
   password  String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("update_at")
+  createdAt DateTime? @default(now()) @map("created_at")
+  isActive  Boolean   @default(true) @map("is_active")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("user")
 }
