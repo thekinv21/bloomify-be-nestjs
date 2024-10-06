@@ -15,7 +15,7 @@ export type TypeApiResponse<T> = {
 	status: number
 	path: string
 	message?: string | Array<{ errorMessage: string }>
-	content: T
+	content: Response<string, any>
 	timestamp: string
 }
 
