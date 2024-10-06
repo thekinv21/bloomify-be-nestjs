@@ -1,5 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
-
+import { ApiProperty, OmitType } from '@nestjs/swagger'
 import {
 	IsBoolean,
 	IsNotEmpty,
@@ -60,7 +59,7 @@ export class CreateUserDto {
 	isActive: boolean
 }
 
-export class UpdateUserDto extends CreateUserDto {
+export class UpdateUserDto extends OmitType(CreateUserDto, ['password']) {
 	@ApiProperty({
 		example: '550e8400-e29b-41d4-a716-446655440000',
 		required: true
