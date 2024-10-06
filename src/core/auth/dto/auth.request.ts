@@ -16,9 +16,8 @@ export class LoginDto {
 		required: true,
 		example: 'pass'
 	})
-	@IsString({})
+	@IsString()
 	@IsNotEmpty()
-	@MinLength(6)
 	password: string
 }
 
@@ -62,6 +61,7 @@ export class RegisterDto {
 	})
 	@IsString()
 	@IsNotEmpty()
+	@MinLength(5)
 	password: string
 }
 
@@ -74,4 +74,10 @@ export class RefreshTokenDto {
 	@IsString()
 	@IsNotEmpty()
 	accessToken: string
+}
+
+export class TokenDto {
+	accessToken: string
+	refreshToken: string
+	expiryDate?: string
 }
