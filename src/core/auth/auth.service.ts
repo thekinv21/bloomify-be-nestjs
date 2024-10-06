@@ -55,7 +55,8 @@ export class AuthService {
 	}
 
 	async refreshToken(dto: RefreshTokenDto): Promise<TokenResponse | null> {
-		return null
+		const tokens = await this.jwtService.getNewTokens(dto)
+		return tokens
 	}
 
 	async logout(dto: TokenDto): Promise<void> {
@@ -63,20 +64,19 @@ export class AuthService {
 	}
 
 	async validateUser(dto: LoginDto) {
-		const isUser = await this.prismaService.user.findUnique({
+		const user = await this.prismaService.user.findUnique({
 			where: {
 				username: dto.username?.toLocaleLowerCase()
 			}
 		})
+		if (!user) throw new NotFoundException('User is not found!')
 
-		if (!isUser) throw new NotFoundException('User not found!')
+		const isValid = await verify(user?.password, dto.password)
 
-		const isValidUser = await verify(isUser?.password, dto.password)
-
-		if (!isValidUser) {
+		if (!isValid) {
 			throw new UnauthorizedException('Invalid Credentials')
 		}
 
-		return plainToInstance(UserDto, isUser)
+		return plainToInstance(UserDto, user)
 	}
 }

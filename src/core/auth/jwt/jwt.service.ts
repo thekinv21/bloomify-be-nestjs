@@ -1,9 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	UnauthorizedException
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { UUID } from 'crypto'
 
 import { PrismaService } from '@/root/prisma/prisma.service'
+import { UserService } from '../../user/user.service'
+import { RefreshTokenDto } from '../dto/auth.request'
 import { TokenResponse } from '../dto/auth.response'
 
 @Injectable()
@@ -11,7 +17,8 @@ export class JwtAuthService {
 	constructor(
 		private readonly envConfig: ConfigService,
 		private readonly jwt: JwtService,
-		private readonly prismaService: PrismaService
+		private readonly prismaService: PrismaService,
+		private readonly userService: UserService
 	) {}
 
 	async generateTokens(userId: UUID) {
@@ -31,14 +38,19 @@ export class JwtAuthService {
 			}
 		)
 
-		const expiryDate = this.jwt?.decode(accessToken)?.exp
-			? new Date(this.jwt.decode(accessToken)?.exp * 1000).toISOString()
-			: null
+		const accessTokenExpiryDate =
+			this.jwt?.decode(accessToken)?.exp ??
+			new Date(this.jwt.decode(accessToken)?.exp * 1000).toISOString()
+
+		const refreshTokenExpiryDate =
+			this.jwt?.decode(refreshToken)?.exp ??
+			new Date(this.jwt.decode(refreshToken)?.exp * 1000).toISOString()
 
 		const token: TokenResponse = {
 			accessToken,
 			refreshToken,
-			expiryDate: expiryDate as string
+			accessTokenExpiryDate,
+			refreshTokenExpiryDate
 		}
 
 		return token
@@ -67,20 +79,39 @@ export class JwtAuthService {
 			throw new UnauthorizedException('Token is expired or Invalid!')
 		}
 
-		const decodedAccessToken = await this.jwt.decode(accessToken)
+		await this.detectExpiry(accessToken)
+	}
 
-		if (!decodedAccessToken) {
-			throw new UnauthorizedException('Token is Invalid!')
+	async detectExpiry(token: string) {
+		const decodedToken = await this.jwt.decode(token)
+
+		if (!decodedToken) {
+			throw new BadRequestException('Token is Invalid!')
 		}
 
 		const currentTime = Math.floor(Date.now() / 1000)
-		const tokenTime = decodedAccessToken?.exp
+		const tokenTime = decodedToken?.exp
 
 		if (tokenTime && currentTime > tokenTime) {
-			await this.addToBlacklist(accessToken)
-			throw new UnauthorizedException('Access Token is expired!')
+			await this.addToBlacklist(token)
+		}
+		return decodedToken
+	}
+
+	async getNewTokens(dto: RefreshTokenDto): Promise<TokenResponse> {
+		const result = await this.jwt.verifyAsync(dto.refreshToken, {
+			secret: this.envConfig.get('JWT_SECRET')
+		})
+
+		if (!result) {
+			throw new BadRequestException('Invalid Refresh Token!')
 		}
 
-		return decodedAccessToken
+		await this.detectExpiry(dto.refreshToken)
+
+		const user = await this.userService.getById(result?.id)
+		const newTokens = await this.generateTokens(user.id)
+
+		return newTokens
 	}
 }
