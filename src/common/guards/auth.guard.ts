@@ -1,3 +1,4 @@
+import { JwtAuthService } from '@/core/auth/jwt/jwt.service'
 import {
 	CanActivate,
 	ExecutionContext,
@@ -12,7 +13,8 @@ import { Request } from 'express'
 export class AuthGuard implements CanActivate {
 	constructor(
 		private jwt: JwtService,
-		private envConfig: ConfigService
+		private envConfig: ConfigService,
+		private jwtAuth: JwtAuthService
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -21,7 +23,12 @@ export class AuthGuard implements CanActivate {
 		if (!token) {
 			throw new UnauthorizedException("Oops! You're not authorized...")
 		}
+
 		try {
+			if (token) {
+				await this.jwtAuth.verifyToken(token)
+			}
+
 			const payload = await this.jwt.verifyAsync(token, {
 				secret: this.envConfig.get('JWT_SECRET')
 			})
