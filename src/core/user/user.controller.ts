@@ -16,7 +16,7 @@ import { ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
 import { PaginatedDto, PaginationDto } from '@/common/dto/base.dto'
-import { AuthGuard } from '@/common/guards/auth.guard'
+import { AuthGuard } from '@/root/src/common/guards/jwt.guard'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'
