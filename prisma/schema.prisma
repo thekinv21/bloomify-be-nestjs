@@ -14,19 +14,24 @@ model User {
   username  String    @unique
   email     String    @unique
   password  String
-  createdAt DateTime? @default(now()) @map("created_at")
-  isActive  Boolean   @default(true) @map("is_active")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("user")
+  createdAt DateTime? @default(now())
+  isActive  Boolean   @default(true)
+  role      Role      @default(USER)
+  updatedAt DateTime? @updatedAt
 }
 
 model Token {
   id        Int       @id @default(autoincrement())
   token     String    @unique @db.VarChar(1000)
-  createdAt DateTime? @default(now()) @map("created_at")
-  isActive  Boolean   @default(true) @map("is_active")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime? @default(now())
+  isActive  Boolean   @default(true)
+  updatedAt DateTime? @updatedAt
+}
 
-  @@map("token")
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  MOD
+  GHOST
 }

@@ -7,8 +7,13 @@ import { hash } from 'argon2'
 import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
-import { PrismaService } from '@/root/prisma/prisma.service'
-import { PaginatedDto, PaginationDto } from '../../common/dto/base.dto'
+import {
+	PaginationDto,
+	PaginationParams,
+	buildOrderBy,
+	buildSearchBy
+} from '@/base'
+import { PrismaService } from '@/root/prisma'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
@@ -16,26 +21,32 @@ import { UserDto } from './dto/user.response'
 export class UserService {
 	constructor(private readonly prismaService: PrismaService) {}
 
-	async getAll(pagination: PaginationDto): Promise<PaginatedDto<UserDto[]>> {
-		const { page, pageSize } = pagination
+	async getAll(args: PaginationParams): Promise<PaginationDto<UserDto[]>> {
+		const { page, pageSize, searchTerm, orderBy, direction } = args
 
-		const skip = Number(page) * Number(pageSize)
-		const take = Number(pageSize)
+		const searchBy = buildSearchBy(searchTerm, [
+			'firstName',
+			'lastName',
+			'username',
+			'email'
+		])
+		const orderObjectBy = buildOrderBy(orderBy, direction)
 
 		const [users, total] = await Promise.all([
 			this.prismaService.user.findMany({
-				skip,
-				take,
-				where: { isActive: true }
+				skip: +page * +pageSize,
+				take: +pageSize,
+				where: searchBy,
+				orderBy: orderObjectBy
 			}),
-			this.prismaService.user.count({ where: { isActive: true } })
+			this.prismaService.user.count({
+				where: searchBy
+			})
 		])
-
-		const userDtoList = plainToInstance(UserDto, users)
 
 		return {
 			total,
-			content: userDtoList
+			content: plainToInstance(UserDto, users)
 		}
 	}
 

@@ -1,3 +1,4 @@
+import { TypeBaseApiResponse, TypePaginatedApiResponse } from '@/base'
 import {
 	CallHandler,
 	ExecutionContext,
@@ -8,21 +9,19 @@ import {
 } from '@nestjs/common'
 import { Observable, throwError } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
-import {
-	TypeNonPaginatedApiResponse,
-	TypePaginatedApiResponse
-} from '../dto/base.dto'
 
-export type TypeApiResponse<T> =
-	| TypeNonPaginatedApiResponse<T>
+export type TypeApiResponseInterceptor<T> =
+	| TypeBaseApiResponse<T>
 	| TypePaginatedApiResponse<T>
 
 @Injectable()
-export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
+export class ApiResponseInterceptor<T>
+	implements NestInterceptor<T, TypeApiResponseInterceptor<T>>
+{
 	intercept(
 		context: ExecutionContext,
 		next: CallHandler
-	): Observable<TypeApiResponse<T>> {
+	): Observable<TypeApiResponseInterceptor<T>> {
 		return next.handle().pipe(
 			map((res: T | T[] | TypePaginatedApiResponse<T>) =>
 				this.handleResponse(res, context)
@@ -67,7 +66,7 @@ export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
 	private handleResponse(
 		res: T | T[] | TypePaginatedApiResponse<T>,
 		context: ExecutionContext
-	): TypeApiResponse<T> {
+	): TypeApiResponseInterceptor<T> {
 		const response = context.switchToHttp().getResponse()
 		const req = context.switchToHttp().getRequest()
 
@@ -99,6 +98,6 @@ export class ApiResponse<T> implements NestInterceptor<T, TypeApiResponse<T>> {
 			path: req.url,
 			timestamp: new Date().toISOString(),
 			content: res
-		} as TypeNonPaginatedApiResponse<T>
+		} as TypeBaseApiResponse<T>
 	}
 }

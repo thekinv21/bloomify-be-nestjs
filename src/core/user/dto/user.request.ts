@@ -1,6 +1,8 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger'
+import { Role } from '@prisma/client'
 import {
 	IsBoolean,
+	IsEnum,
 	IsNotEmpty,
 	IsOptional,
 	IsString,
@@ -57,6 +59,10 @@ export class CreateUserDto {
 	@IsOptional()
 	@IsBoolean()
 	isActive: boolean
+
+	@IsEnum(Role)
+	@IsOptional()
+	role?: Role
 }
 
 export class UpdateUserDto extends OmitType(CreateUserDto, ['password']) {
