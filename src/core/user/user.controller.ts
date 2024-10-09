@@ -14,7 +14,7 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
-import { PaginationDto, PaginationParams } from '@/root/src/base'
+import { PaginationDto, PaginationParams } from '@/base'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'

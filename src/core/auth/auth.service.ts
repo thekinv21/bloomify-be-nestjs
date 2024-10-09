@@ -1,11 +1,12 @@
+import { PrismaService } from '@/root/prisma'
 import {
 	Injectable,
 	NotFoundException,
 	UnauthorizedException
 } from '@nestjs/common'
+
 import { hash, verify } from 'argon2'
 import { plainToInstance } from 'class-transformer'
-import { PrismaService } from 'prisma/prisma.service'
 import { UserDto } from '../user/dto/user.response'
 import { UserService } from '../user/user.service'
 import {

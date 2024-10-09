@@ -7,8 +7,8 @@ import { hash } from 'argon2'
 import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
-import { PrismaService } from '@/root/prisma/prisma.service'
-import { PaginatedDto, PaginationDto } from '../../base'
+import { PaginationDto, PaginationParams } from '@/base'
+import { PrismaService } from '@/root/prisma'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
@@ -16,11 +16,11 @@ import { UserDto } from './dto/user.response'
 export class UserService {
 	constructor(private readonly prismaService: PrismaService) {}
 
-	async getAll(pagination: PaginationDto): Promise<PaginatedDto<UserDto[]>> {
-		const { page, pageSize } = pagination
+	async getAll(args: PaginationParams): Promise<PaginationDto<UserDto[]>> {
+		const { page, pageSize } = args
 
-		const skip = Number(page) * Number(pageSize)
-		const take = Number(pageSize)
+		const skip = +page * +pageSize
+		const take = +pageSize
 
 		const [users, total] = await Promise.all([
 			this.prismaService.user.findMany({
