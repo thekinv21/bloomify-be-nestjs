@@ -30,9 +30,7 @@ export class PaginationParams {
 	searchTerm?: string
 
 	@ApiProperty({
-		example: {
-			updatedAt: 'desc'
-		},
+		example: 'firstName',
 		title: 'orderBy',
 		required: false
 	})
