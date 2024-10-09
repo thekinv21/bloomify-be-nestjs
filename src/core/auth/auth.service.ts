@@ -7,6 +7,7 @@ import {
 
 import { hash, verify } from 'argon2'
 import { plainToInstance } from 'class-transformer'
+import { UUID } from 'crypto'
 import { UserDto } from '../user/dto/user.response'
 import { UserService } from '../user/user.service'
 import {
@@ -25,6 +26,10 @@ export class AuthService {
 		private readonly jwtService: JwtAuthService,
 		private readonly userService: UserService
 	) {}
+
+	async getProfile(id: UUID): Promise<UserDto> {
+		return await this.userService.getById(id)
+	}
 
 	async register(dto: RegisterDto): Promise<AuthResponseDto | null> {
 		await this.userService.isUnique(dto.username, dto.email)
