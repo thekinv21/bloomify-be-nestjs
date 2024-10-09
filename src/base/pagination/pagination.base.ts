@@ -1,23 +1,51 @@
+import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator'
 
 export class PaginationParams {
+	@ApiProperty({
+		example: 0,
+		title: 'page'
+	})
 	@Transform(({ value }) => Number(value))
 	@IsNumber()
 	@Min(0)
 	page: number
 
+	@ApiProperty({
+		example: 10,
+		title: 'pageSize'
+	})
 	@Transform(({ value }) => Number(value))
 	@IsNumber()
 	pageSize: number
 
+	@ApiProperty({
+		example: 'James',
+		title: 'searchBy',
+		required: false
+	})
 	@IsOptional()
 	@IsString()
 	searchTerm?: string
 
+	@ApiProperty({
+		example: {
+			updatedAt: 'desc'
+		},
+		title: 'orderBy'
+	})
 	@IsOptional()
 	@IsString()
-	orderBy?: 'asc' | 'desc'
+	orderBy?: string
+
+	@ApiProperty({
+		example: 'desc',
+		title: 'direction'
+	})
+	@IsOptional()
+	@IsString()
+	direction?: 'asc' | 'desc'
 }
 
 export class PaginationDto<T> {

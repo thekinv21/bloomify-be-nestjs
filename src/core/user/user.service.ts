@@ -7,7 +7,12 @@ import { hash } from 'argon2'
 import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
-import { PaginationDto, PaginationParams } from '@/base'
+import {
+	PaginationDto,
+	PaginationParams,
+	buildOrderBy,
+	buildSearchBy
+} from '@/base'
 import { PrismaService } from '@/root/prisma'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
@@ -17,25 +22,31 @@ export class UserService {
 	constructor(private readonly prismaService: PrismaService) {}
 
 	async getAll(args: PaginationParams): Promise<PaginationDto<UserDto[]>> {
-		const { page, pageSize } = args
+		const { page, pageSize, searchTerm, orderBy, direction } = args
 
-		const skip = +page * +pageSize
-		const take = +pageSize
+		const searchBy = buildSearchBy(searchTerm, [
+			'firstName',
+			'lastName',
+			'username',
+			'email'
+		])
+		const orderObjectBy = buildOrderBy(orderBy, direction)
 
 		const [users, total] = await Promise.all([
 			this.prismaService.user.findMany({
-				skip,
-				take,
-				where: { isActive: true }
+				skip: +page * +pageSize,
+				take: +pageSize,
+				where: searchBy,
+				orderBy: orderObjectBy
 			}),
-			this.prismaService.user.count({ where: { isActive: true } })
+			this.prismaService.user.count({
+				where: searchBy
+			})
 		])
-
-		const userDtoList = plainToInstance(UserDto, users)
 
 		return {
 			total,
-			content: userDtoList
+			content: plainToInstance(UserDto, users)
 		}
 	}
 

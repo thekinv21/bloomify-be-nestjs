@@ -12,7 +12,7 @@ import {
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
 import { PaginationDto, PaginationParams } from '@/base'
@@ -22,8 +22,9 @@ import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'
 
-@ApiTags('User')
 @Controller('/user')
+@ApiTags('User')
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe())
 export class UserController {
