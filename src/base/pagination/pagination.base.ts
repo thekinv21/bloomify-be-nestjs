@@ -33,7 +33,8 @@ export class PaginationParams {
 		example: {
 			updatedAt: 'desc'
 		},
-		title: 'orderBy'
+		title: 'orderBy',
+		required: false
 	})
 	@IsOptional()
 	@IsString()
@@ -41,7 +42,8 @@ export class PaginationParams {
 
 	@ApiProperty({
 		example: 'desc',
-		title: 'direction'
+		title: 'direction',
+		required: false
 	})
 	@IsOptional()
 	@IsString()
