@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	Post,
+	UseGuards,
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
@@ -14,6 +15,7 @@ import {
 	TokenDto
 } from './dto/auth.request'
 import { AuthResponseDto, TokenResponse } from './dto/auth.response'
+import { JwtAuthGuard } from './guards/jwt.guard'
 
 @ApiTags('Auth')
 @UsePipes(new ValidationPipe())
@@ -32,11 +34,13 @@ export class AuthController {
 	}
 
 	@Post('/refresh-token')
+	@UseGuards(JwtAuthGuard)
 	async refresh(@Body() dto: RefreshTokenDto): Promise<TokenResponse | null> {
 		return this.authService.refreshToken(dto)
 	}
 
 	@Post('/logout')
+	@UseGuards(JwtAuthGuard)
 	async logout(@Body() dto: TokenDto): Promise<void> {
 		return this.authService.logout(dto)
 	}

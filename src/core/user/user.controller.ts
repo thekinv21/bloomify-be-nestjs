@@ -8,6 +8,7 @@ import {
 	Post,
 	Put,
 	Query,
+	UseGuards,
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
@@ -15,12 +16,15 @@ import { ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
 import { PaginationDto, PaginationParams } from '@/base'
+import { Auth } from '../auth/decorators/auth.decorator'
+import { JwtAuthGuard } from '../auth/guards/jwt.guard'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'
 
 @ApiTags('User')
 @Controller('/user')
+@UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe())
 export class UserController {
 	constructor(private readonly userService: UserService) {}
@@ -48,21 +52,25 @@ export class UserController {
 	}
 
 	@Post()
+	@Auth('SUPER_ADMIN')
 	create(@Body() dto: CreateUserDto): Promise<UserDto> {
 		return this.userService.create(dto)
 	}
 
 	@Put()
+	@Auth('SUPER_ADMIN')
 	update(@Body() dto: UpdateUserDto): Promise<UserDto> {
 		return this.userService.update(dto)
 	}
 
 	@Delete(':id')
+	@Auth('SUPER_ADMIN')
 	delete(@Param('id') id: UUID): Promise<void> {
 		return this.userService.delete(id)
 	}
 
 	@Patch(':id')
+	@Auth('SUPER_ADMIN')
 	toggle(@Param('id') id: UUID): Promise<void> {
 		return this.userService.toggle(id)
 	}

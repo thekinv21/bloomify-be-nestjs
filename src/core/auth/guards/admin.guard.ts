@@ -1,21 +1,24 @@
 import {
 	CanActivate,
 	ExecutionContext,
-	ForbiddenException
+	ForbiddenException,
+	Injectable
 } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
 import { Role, User } from '@prisma/client'
 import { Request } from 'express'
 
-export class AdminGuard implements CanActivate {
-	constructor(private reflector: Reflector) {}
+@Injectable()
+export class RoleGuard implements CanActivate {
+	constructor(private requiredRole: Role) {}
 
 	canActivate(context: ExecutionContext): boolean {
 		const request = context.switchToHttp().getRequest<Request>()
 		const user = request.user as User
 
-		if (user.role !== Role.ADMIN) {
-			throw new ForbiddenException('Whoops!, You are don`t have permission...')
+		if (user.role !== this.requiredRole) {
+			throw new ForbiddenException(
+				`Sorry, but you aren't authorized for this action...`
+			)
 		}
 
 		return true
