@@ -14,7 +14,7 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
-import { PaginatedDto, PaginationDto } from '@/common/dto/base.dto'
+import { PaginationDto, PaginationParams } from '@/root/src/base'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'
@@ -26,7 +26,9 @@ export class UserController {
 	constructor(private readonly userService: UserService) {}
 
 	@Get()
-	getAll(@Query() pagination: PaginationDto): Promise<PaginatedDto<UserDto[]>> {
+	getAll(
+		@Query() pagination: PaginationParams
+	): Promise<PaginationDto<UserDto[]>> {
 		return this.userService.getAll(pagination)
 	}
 

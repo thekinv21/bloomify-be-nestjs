@@ -8,7 +8,7 @@ import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
 import { PrismaService } from '@/root/prisma/prisma.service'
-import { PaginatedDto, PaginationDto } from '../../common/dto/base.dto'
+import { PaginatedDto, PaginationDto } from '../../base'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
