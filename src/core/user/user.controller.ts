@@ -8,7 +8,6 @@ import {
 	Post,
 	Put,
 	Query,
-	UseGuards,
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
@@ -16,14 +15,12 @@ import { ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
 import { PaginatedDto, PaginationDto } from '@/common/dto/base.dto'
-import { AuthGuard } from '@/root/src/common/guards/jwt.guard'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 import { UserService } from './user.service'
 
 @ApiTags('User')
 @Controller('/user')
-@UseGuards(AuthGuard)
 @UsePipes(new ValidationPipe())
 export class UserController {
 	constructor(private readonly userService: UserService) {}

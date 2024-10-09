@@ -5,21 +5,18 @@ import { JwtService } from '@nestjs/jwt'
 import { AuthController } from './auth/auth.controller'
 import { AuthService } from './auth/auth.service'
 import { JwtAuthService } from './auth/jwt/jwt.service'
-import { RoleController } from './role/role.controller'
-import { RoleService } from './role/role.service'
 import { UserController } from './user/user.controller'
 import { UserService } from './user/user.service'
 
 @Module({
 	imports: [ConfigModule.forRoot()],
-	controllers: [AuthController, UserController, RoleController],
+	controllers: [AuthController, UserController],
 	providers: [
 		AuthService,
 		UserService,
 		PrismaService,
 		JwtService,
-		JwtAuthService,
-		RoleService
+		JwtAuthService
 	],
 	exports: []
 })
