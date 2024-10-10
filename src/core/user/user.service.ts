@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ConflictException,
 	Injectable,
 	NotFoundException
@@ -8,14 +9,16 @@ import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
 import {
+	buildOrderBy,
+	buildSearchBy,
 	PaginationDto,
 	PaginationParams,
-	buildOrderBy,
-	buildSearchBy
+	RoleEnum
 } from '@/base'
 import { PrismaService } from '@/root/prisma'
 import { Role } from '@prisma/client'
 import { RoleDtoForUser } from '../role/dto/request.dto'
+
 import { RoleService } from '../role/roles.service'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
@@ -111,38 +114,44 @@ export class UserService {
 			dto.roles as RoleDtoForUser[]
 		)
 
-		const updated = await this.prismaService.user.update({
-			where: { id: dto.id },
-			data: {
-				...dto,
-				roles: {
-					update: roles.map((role: Role) => ({
-						where: {
-							userId_roleId: {
-								userId: dto.id,
-								roleId: role.id
-							}
-						},
-						data: {
-							roleId: role.id
-						}
-					}))
+		const updated = await this.prismaService.$transaction(async prisma => {
+			await prisma.userRoles.deleteMany({
+				where: {
+					userId: dto.id
 				}
-			},
-			include: {
-				roles: {
-					include: {
-						role: true
+			})
+
+			const user = await prisma.user.update({
+				where: { id: dto.id },
+				data: {
+					...dto,
+					roles: {
+						create: roles.map((role: Role) => ({
+							roleId: role.id
+						}))
+					}
+				},
+				include: {
+					roles: {
+						include: {
+							role: true
+						}
 					}
 				}
-			}
+			})
+
+			return user
 		})
 
 		return plainToInstance(UserDto, updated)
 	}
 
 	async delete(id: UUID): Promise<void> {
-		await this.findById(id)
+		const user = await this.findById(id)
+
+		if (user.roles.includes(RoleEnum.SUPER_ADMIN)) {
+			throw new BadRequestException("Super Admin can't be deleted...")
+		}
 
 		await this.prismaService.user.delete({
 			where: { id }
@@ -151,6 +160,10 @@ export class UserService {
 
 	async toggle(id: UUID): Promise<void> {
 		const user = await this.findById(id)
+
+		if (user.roles.includes(RoleEnum.SUPER_ADMIN)) {
+			throw new BadRequestException("Super Admin can't be deactivate...")
+		}
 
 		await this.prismaService.user.update({
 			where: { id },
@@ -196,7 +209,7 @@ export class UserService {
 		return plainToInstance(UserDto, user)
 	}
 
-	private async findByEmail(email: string): Promise<UserDto | null> {
+	private async findByEmail(email: string): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				email: email?.toLowerCase()
@@ -217,7 +230,7 @@ export class UserService {
 		return plainToInstance(UserDto, user)
 	}
 
-	private async findByUsername(username: string): Promise<UserDto | null> {
+	private async findByUsername(username: string): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				username: username?.toLowerCase()

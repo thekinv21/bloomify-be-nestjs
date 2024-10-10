@@ -72,8 +72,7 @@ export class CreateUserDto {
 		description: "Existing Roles Id's"
 	})
 	@IsArray()
-	@IsOptional()
-	roles?: RoleDtoForUser[]
+	roles: RoleDtoForUser[]
 }
 
 export class UpdateUserDto extends OmitType(CreateUserDto, ['password']) {

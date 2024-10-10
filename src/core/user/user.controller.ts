@@ -15,7 +15,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { UUID } from 'crypto'
 
-import { PaginationDto, PaginationParams } from '@/base'
+import { PaginationDto, PaginationParams, RoleEnum } from '@/base'
 import { Auth } from '../auth/decorators/auth.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt.guard'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
@@ -53,24 +53,25 @@ export class UserController {
 	}
 
 	@Post()
-	@Auth(['SUPER_ADMIN'])
+	@Auth([RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN])
 	create(@Body() dto: CreateUserDto): Promise<UserDto> {
 		return this.userService.create(dto)
 	}
 
 	@Put()
+	@Auth([RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN])
 	update(@Body() dto: UpdateUserDto): Promise<UserDto> {
 		return this.userService.update(dto)
 	}
 
 	@Delete(':id')
-	@Auth(['SUPER_ADMIN'])
+	@Auth([RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN])
 	delete(@Param('id') id: UUID): Promise<void> {
 		return this.userService.delete(id)
 	}
 
 	@Patch(':id')
-	@Auth(['SUPER_ADMIN'])
+	@Auth([RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN])
 	toggle(@Param('id') id: UUID): Promise<void> {
 		return this.userService.toggle(id)
 	}

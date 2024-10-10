@@ -1,5 +1,5 @@
 import { IBaseType } from '@/base'
-import { IRole } from '../../role/entities/role.entity'
+import { IRole } from '../../role/interface/role'
 
 export interface IUser extends IBaseType {
 	id: string

@@ -1,6 +1,6 @@
 import { Exclude, Expose, Transform } from 'class-transformer'
 import { UUID } from 'crypto'
-import { IUser, IUserRole } from '../entities/user.entity'
+import { IUser, IUserRole } from '../interface/user'
 
 export class UserDto {
 	@Expose()
