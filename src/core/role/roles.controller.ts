@@ -6,34 +6,45 @@ import {
 	Param,
 	Patch,
 	Post,
-	Put
+	Put,
+	UsePipes,
+	ValidationPipe
 } from '@nestjs/common'
-import { CreateRoleDto } from './dto/create-role.dto'
-import { UpdateRoleDto } from './dto/update-role.dto'
+import { ApiTags } from '@nestjs/swagger'
+import { CreateRoleDto, UpdateRoleDto } from './dto/request.dto'
+
+import { RoleDto } from './dto/response.dto'
 import { RoleService } from './roles.service'
 
+@ApiTags('Role')
 @Controller('role')
+@UsePipes(new ValidationPipe())
 export class RoleController {
 	constructor(private readonly rolesService: RoleService) {}
 
 	@Get()
-	getAll() {
+	getAll(): Promise<RoleDto[]> {
 		return this.rolesService.getAll()
 	}
 
 	@Get(':id')
-	getById(@Param('id') id: number) {
+	getById(@Param('id') id: number): Promise<RoleDto> {
 		return this.rolesService.getById(+id)
 	}
 
+	@Get('/roleName/:name')
+	getByName(@Param('name') name: string): Promise<RoleDto> {
+		return this.rolesService.getByName(name)
+	}
+
 	@Post()
-	create(@Body() createRoleDto: CreateRoleDto) {
-		return this.rolesService.create(createRoleDto)
+	create(@Body() dto: CreateRoleDto) {
+		return this.rolesService.create(dto)
 	}
 
 	@Put()
-	update(updateRoleDto: UpdateRoleDto) {
-		return this.rolesService.update(updateRoleDto)
+	update(@Body() dto: UpdateRoleDto) {
+		return this.rolesService.update(dto)
 	}
 
 	@Patch(':id')

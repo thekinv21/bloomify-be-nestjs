@@ -1,8 +1,7 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger'
-import { Role } from '@prisma/client'
 import {
+	IsArray,
 	IsBoolean,
-	IsEnum,
 	IsNotEmpty,
 	IsOptional,
 	IsString,
@@ -10,6 +9,7 @@ import {
 	MinLength
 } from 'class-validator'
 import { UUID } from 'crypto'
+import { RoleDtoForUser } from '../../role/dto/request.dto'
 
 export class CreateUserDto {
 	@ApiProperty({
@@ -60,9 +60,20 @@ export class CreateUserDto {
 	@IsBoolean()
 	isActive: boolean
 
-	@IsEnum(Role)
+	@ApiProperty({
+		example: [
+			{
+				id: 1
+			},
+			{
+				id: 2
+			}
+		],
+		description: "Existing Roles Id's"
+	})
+	@IsArray()
 	@IsOptional()
-	role?: Role
+	roles?: RoleDtoForUser[]
 }
 
 export class UpdateUserDto extends OmitType(CreateUserDto, ['password']) {

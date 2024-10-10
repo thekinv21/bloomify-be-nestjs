@@ -1,5 +1,6 @@
-import { Exclude, Expose } from 'class-transformer'
+import { Exclude, Expose, Transform } from 'class-transformer'
 import { UUID } from 'crypto'
+import { IUser, IUserRole } from '../entities/user.entity'
 
 export class UserDto {
 	@Expose()
@@ -28,4 +29,10 @@ export class UserDto {
 
 	@Expose()
 	updatedAt: Date | null
+
+	@Expose()
+	@Transform(({ obj }: { obj: IUser }) =>
+		obj.roles.map((item: IUserRole) => item.role.name)
+	)
+	roles: string[]
 }

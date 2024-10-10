@@ -53,25 +53,24 @@ export class UserController {
 	}
 
 	@Post()
-	@Auth('SUPER_ADMIN')
+	@Auth(['SUPER_ADMIN'])
 	create(@Body() dto: CreateUserDto): Promise<UserDto> {
 		return this.userService.create(dto)
 	}
 
 	@Put()
-	@Auth('SUPER_ADMIN')
 	update(@Body() dto: UpdateUserDto): Promise<UserDto> {
 		return this.userService.update(dto)
 	}
 
 	@Delete(':id')
-	@Auth('SUPER_ADMIN')
+	@Auth(['SUPER_ADMIN'])
 	delete(@Param('id') id: UUID): Promise<void> {
 		return this.userService.delete(id)
 	}
 
 	@Patch(':id')
-	@Auth('SUPER_ADMIN')
+	@Auth(['SUPER_ADMIN'])
 	toggle(@Param('id') id: UUID): Promise<void> {
 		return this.userService.toggle(id)
 	}

@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
+  id        String      @id @default(uuid())
   firstName String
   lastName  String
-  username  String    @unique
-  email     String    @unique
+  username  String      @unique
+  email     String      @unique
   password  String
-  createdAt DateTime? @default(now())
-  isActive  Boolean   @default(true)
-  role      Role      @default(USER)
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime?   @default(now())
+  isActive  Boolean     @default(true)
+  updatedAt DateTime?   @updatedAt
+  roles     UserRoles[]
 }
 
 model Token {
@@ -28,10 +28,21 @@ model Token {
   updatedAt DateTime? @updatedAt
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPER_ADMIN
-  MOD
-  GHOST
+model Role {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  isActive  Boolean     @default(true)
+  createdAt DateTime?   @default(now())
+  updatedAt DateTime?   @updatedAt
+  users     UserRoles[]
+}
+
+model UserRoles {
+  id     Int    @id @default(autoincrement())
+  userId String
+  roleId Int
+  role   Role   @relation(fields: [roleId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, roleId])
 }

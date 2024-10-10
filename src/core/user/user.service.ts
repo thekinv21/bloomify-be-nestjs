@@ -14,12 +14,18 @@ import {
 	buildSearchBy
 } from '@/base'
 import { PrismaService } from '@/root/prisma'
+import { Role } from '@prisma/client'
+import { RoleDtoForUser } from '../role/dto/request.dto'
+import { RoleService } from '../role/roles.service'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
 @Injectable()
 export class UserService {
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly roleService: RoleService
+	) {}
 
 	async getAll(args: PaginationParams): Promise<PaginationDto<UserDto[]>> {
 		const { page, pageSize, searchTerm, orderBy, direction } = args
@@ -37,7 +43,14 @@ export class UserService {
 				skip: +page * +pageSize,
 				take: +pageSize,
 				where: searchBy,
-				orderBy: orderObjectBy
+				orderBy: orderObjectBy,
+				include: {
+					roles: {
+						include: {
+							role: true
+						}
+					}
+				}
 			}),
 			this.prismaService.user.count({
 				where: searchBy
@@ -65,10 +78,26 @@ export class UserService {
 	async create(dto: CreateUserDto): Promise<UserDto> {
 		await this.isUnique(dto.username, dto.email)
 
+		const roles = await this.roleService.findByIds(
+			dto.roles as RoleDtoForUser[]
+		)
+
 		const newUser = await this.prismaService.user.create({
 			data: {
 				...dto,
-				password: await hash(dto.password)
+				password: await hash(dto.password),
+				roles: {
+					create: roles.map((role: Role) => ({
+						roleId: role.id
+					}))
+				}
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 
@@ -78,9 +107,35 @@ export class UserService {
 	async update(dto: UpdateUserDto): Promise<UserDto> {
 		await this.findById(dto.id)
 
+		const roles = await this.roleService.findByIds(
+			dto.roles as RoleDtoForUser[]
+		)
+
 		const updated = await this.prismaService.user.update({
 			where: { id: dto.id },
-			data: dto
+			data: {
+				...dto,
+				roles: {
+					update: roles.map((role: Role) => ({
+						where: {
+							userId_roleId: {
+								userId: dto.id,
+								roleId: role.id
+							}
+						},
+						data: {
+							roleId: role.id
+						}
+					}))
+				}
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
+			}
 		})
 
 		return plainToInstance(UserDto, updated)
@@ -105,7 +160,14 @@ export class UserService {
 
 	private async findById(id: UUID): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
-			where: { id }
+			where: { id },
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
+			}
 		})
 
 		if (!user) {
@@ -117,7 +179,14 @@ export class UserService {
 
 	private async findActiveById(id: UUID): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
-			where: { id, isActive: true }
+			where: { id, isActive: true },
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
+			}
 		})
 
 		if (!user) {
@@ -131,6 +200,13 @@ export class UserService {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				email: email?.toLowerCase()
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 
@@ -145,6 +221,13 @@ export class UserService {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				username: username?.toLowerCase()
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 
