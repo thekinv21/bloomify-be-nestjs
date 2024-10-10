@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ConflictException,
 	Injectable,
 	NotFoundException
@@ -8,18 +9,26 @@ import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
 
 import {
+	buildOrderBy,
+	buildSearchBy,
 	PaginationDto,
 	PaginationParams,
-	buildOrderBy,
-	buildSearchBy
+	RoleEnum
 } from '@/base'
 import { PrismaService } from '@/root/prisma'
+import { Role } from '@prisma/client'
+import { RoleDtoForUser } from '../role/dto/request.dto'
+
+import { RoleService } from '../role/roles.service'
 import { CreateUserDto, UpdateUserDto } from './dto/user.request'
 import { UserDto } from './dto/user.response'
 
 @Injectable()
 export class UserService {
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly roleService: RoleService
+	) {}
 
 	async getAll(args: PaginationParams): Promise<PaginationDto<UserDto[]>> {
 		const { page, pageSize, searchTerm, orderBy, direction } = args
@@ -37,7 +46,14 @@ export class UserService {
 				skip: +page * +pageSize,
 				take: +pageSize,
 				where: searchBy,
-				orderBy: orderObjectBy
+				orderBy: orderObjectBy,
+				include: {
+					roles: {
+						include: {
+							role: true
+						}
+					}
+				}
 			}),
 			this.prismaService.user.count({
 				where: searchBy
@@ -65,10 +81,26 @@ export class UserService {
 	async create(dto: CreateUserDto): Promise<UserDto> {
 		await this.isUnique(dto.username, dto.email)
 
+		const roles = await this.roleService.findByIds(
+			dto.roles as RoleDtoForUser[]
+		)
+
 		const newUser = await this.prismaService.user.create({
 			data: {
 				...dto,
-				password: await hash(dto.password)
+				password: await hash(dto.password),
+				roles: {
+					create: roles.map((role: Role) => ({
+						roleId: role.id
+					}))
+				}
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 
@@ -78,16 +110,48 @@ export class UserService {
 	async update(dto: UpdateUserDto): Promise<UserDto> {
 		await this.findById(dto.id)
 
-		const updated = await this.prismaService.user.update({
-			where: { id: dto.id },
-			data: dto
+		const roles = await this.roleService.findByIds(
+			dto.roles as RoleDtoForUser[]
+		)
+
+		const updated = await this.prismaService.$transaction(async prisma => {
+			await prisma.userRoles.deleteMany({
+				where: {
+					userId: dto.id
+				}
+			})
+
+			const user = await prisma.user.update({
+				where: { id: dto.id },
+				data: {
+					...dto,
+					roles: {
+						create: roles.map((role: Role) => ({
+							roleId: role.id
+						}))
+					}
+				},
+				include: {
+					roles: {
+						include: {
+							role: true
+						}
+					}
+				}
+			})
+
+			return user
 		})
 
 		return plainToInstance(UserDto, updated)
 	}
 
 	async delete(id: UUID): Promise<void> {
-		await this.findById(id)
+		const user = await this.findById(id)
+
+		if (user.roles.includes(RoleEnum.SUPER_ADMIN)) {
+			throw new BadRequestException("Super Admin can't be deleted...")
+		}
 
 		await this.prismaService.user.delete({
 			where: { id }
@@ -97,6 +161,10 @@ export class UserService {
 	async toggle(id: UUID): Promise<void> {
 		const user = await this.findById(id)
 
+		if (user.roles.includes(RoleEnum.SUPER_ADMIN)) {
+			throw new BadRequestException("Super Admin can't be deactivate...")
+		}
+
 		await this.prismaService.user.update({
 			where: { id },
 			data: { isActive: !user.isActive }
@@ -105,7 +173,14 @@ export class UserService {
 
 	private async findById(id: UUID): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
-			where: { id }
+			where: { id },
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
+			}
 		})
 
 		if (!user) {
@@ -117,7 +192,14 @@ export class UserService {
 
 	private async findActiveById(id: UUID): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
-			where: { id, isActive: true }
+			where: { id, isActive: true },
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
+			}
 		})
 
 		if (!user) {
@@ -127,10 +209,17 @@ export class UserService {
 		return plainToInstance(UserDto, user)
 	}
 
-	private async findByEmail(email: string): Promise<UserDto | null> {
+	private async findByEmail(email: string): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				email: email?.toLowerCase()
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 
@@ -141,10 +230,17 @@ export class UserService {
 		return plainToInstance(UserDto, user)
 	}
 
-	private async findByUsername(username: string): Promise<UserDto | null> {
+	private async findByUsername(username: string): Promise<UserDto> {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				username: username?.toLowerCase()
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 

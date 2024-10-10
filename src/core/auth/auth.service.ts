@@ -8,6 +8,7 @@ import {
 import { hash, verify } from 'argon2'
 import { plainToInstance } from 'class-transformer'
 import { UUID } from 'crypto'
+import { RoleService } from '../role/roles.service'
 import { UserDto } from '../user/dto/user.response'
 import { UserService } from '../user/user.service'
 import {
@@ -24,7 +25,8 @@ export class AuthService {
 	constructor(
 		private readonly prismaService: PrismaService,
 		private readonly jwtService: JwtAuthService,
-		private readonly userService: UserService
+		private readonly userService: UserService,
+		private readonly roleService: RoleService
 	) {}
 
 	async getProfile(id: UUID): Promise<UserDto> {
@@ -34,12 +36,26 @@ export class AuthService {
 	async register(dto: RegisterDto): Promise<AuthResponseDto | null> {
 		await this.userService.isUnique(dto.username, dto.email)
 
+		const USER = await this.roleService.getByName('USER')
+
 		const newUser = plainToInstance(
 			UserDto,
 			await this.prismaService.user.create({
 				data: {
 					...dto,
-					password: await hash(dto.password)
+					password: await hash(dto.password),
+					roles: {
+						create: {
+							roleId: USER.id
+						}
+					}
+				},
+				include: {
+					roles: {
+						include: {
+							role: true
+						}
+					}
 				}
 			})
 		)
@@ -73,6 +89,13 @@ export class AuthService {
 		const user = await this.prismaService.user.findUnique({
 			where: {
 				username: dto.username?.toLocaleLowerCase()
+			},
+			include: {
+				roles: {
+					include: {
+						role: true
+					}
+				}
 			}
 		})
 		if (!user) throw new NotFoundException('User is not found!')
