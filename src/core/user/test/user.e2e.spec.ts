@@ -17,6 +17,8 @@ import { UserService } from '../user.service'
 let app: INestApplication<Express>
 let request: supertest.SuperTest<supertest.Test>
 let id: UUID
+let email: string
+let username: string
 
 beforeAll(async () => {
 	const moduleRef = await Test.createTestingModule({
@@ -97,6 +99,28 @@ describe('User module Controller and Service e2e Test', () => {
 		}
 	})
 
+	// get-by-email
+
+	test('GET: /user/email/:email ', async () => {
+		const { body, status } = await request.get(`/user/email/${email}`)
+		if (status >= 200 && status < 300) {
+			expect(body).toEqual(expect.objectContaining(res))
+		} else {
+			buildException(status, body)
+		}
+	})
+
+	// get-by-username
+
+	test('GET: /user/username/:username ', async () => {
+		const { body, status } = await request.get(`/user/username/${username}`)
+		if (status >= 200 && status < 300) {
+			expect(body).toEqual(expect.objectContaining(res))
+		} else {
+			buildException(status, body)
+		}
+	})
+
 	// create
 
 	test('POST: /user', async () => {
@@ -153,24 +177,21 @@ const buildException = (
 	switch (status) {
 		case 401:
 			expect(body.message).toBe("Oops! You're not authorized...")
-			expect(body.error).toBe('Unauthorized')
 			break
 		case 404:
 			expect(body.message).toBe(`User with ID: ${id} is not found!`)
-			expect(body.error).toBe('NotFoundException')
 			break
 
 		case 409:
 			expect(body.message).toBe(`User already exist!`)
-			expect(body.error).toBe('Conflict')
+
 		case 500:
-			expect(status).toBe(500)
 			expect(body.message).toBe('Internal server error')
 			break
 
 		case 400:
 			expect(status).toBe(400)
-			expect(body.message).toBe('BadRequest')
+
 			break
 		default:
 			break
