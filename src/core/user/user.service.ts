@@ -149,9 +149,17 @@ export class UserService {
 	async delete(id: UUID): Promise<void> {
 		const user = await this.findById(id)
 
-		if (user.roles.includes(RoleEnum.SUPER_ADMIN)) {
-			throw new BadRequestException("Super Admin can't be deleted...")
-		}
+		// if (user.roles.includes(RoleEnum.SUPER_ADMIN)) {
+		// 	throw new BadRequestException("Super Admin can't be deleted...")
+		// }
+
+		await this.prismaService.$transaction(async prisma => {
+			await prisma.userRoles.deleteMany({
+				where: {
+					userId: id
+				}
+			})
+		})
 
 		await this.prismaService.user.delete({
 			where: { id }
