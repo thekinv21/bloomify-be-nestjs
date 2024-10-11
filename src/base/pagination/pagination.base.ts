@@ -18,6 +18,7 @@ export class PaginationParams {
 	})
 	@Transform(({ value }) => Number(value))
 	@IsNumber()
+	@Min(1)
 	pageSize: number
 
 	@ApiProperty({
