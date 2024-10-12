@@ -5,12 +5,15 @@ import { JwtService } from '@nestjs/jwt'
 import { Test } from '@nestjs/testing'
 import { type Express } from 'express'
 import supertest from 'supertest'
-import { JwtAuthService } from '../../auth/jwt/jwt.service'
-import { UserService } from '../../user/user.service'
-import { CreateRoleDto } from '../dto/request.dto'
 import { IRole } from '../interface/role'
-import { RoleController } from '../roles.controller'
-import { RoleService } from '../roles.service'
+
+import {
+	CreateRoleDto,
+	JwtAuthService,
+	RoleController,
+	RoleService,
+	UserService
+} from '../../index'
 
 let app: INestApplication<Express>
 let request: supertest.SuperTest<supertest.Test>
@@ -52,7 +55,7 @@ const res: IRole = {
 	updatedAt: new Date('2024-10-11T15:43:15.133Z')
 }
 
-describe('Role module Controller and Service e2e Test', () => {
+describe('Role (e2e)', () => {
 	test('GET: /role', async () => {
 		const { body, status } = await request.get(`/role`)
 
@@ -143,7 +146,6 @@ const buildException = (
 			break
 		case 404:
 			expect(body.message).toBe(`Role is not found!`)
-
 			break
 
 		case 409:

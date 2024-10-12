@@ -7,16 +7,19 @@ import { Test } from '@nestjs/testing'
 import { UUID } from 'crypto'
 import { type Express } from 'express'
 import supertest from 'supertest'
-import { JwtAuthService } from '../../auth/jwt/jwt.service'
-import { RoleService } from '../../role/roles.service'
-import { CreateUserDto } from '../dto/user.request'
-import { UserDto } from '../dto/user.response'
-import { UserController } from '../user.controller'
-import { UserService } from '../user.service'
+
+import {
+	CreateUserDto,
+	JwtAuthService,
+	RoleService,
+	UserController,
+	UserDto,
+	UserService
+} from '../../index'
 
 let app: INestApplication<Express>
-let request: supertest.SuperTest<supertest.Test>
-let id: UUID
+export let request: supertest.SuperTest<supertest.Test>
+export let id: UUID
 let email: string
 let username: string
 
@@ -43,28 +46,32 @@ afterAll(async () => {
 })
 
 const req: CreateUserDto = {
-	firstName: 'Jest FirstName',
-	lastName: 'Jest LastName',
-	email: 'jest@example.com',
-	username: 'jest_test',
-	password: 'pass',
+	firstName: 'Test JestFirstName',
+	lastName: 'Test JestLastName ',
+	email: 'test@example.com',
+	username: 'test_jest',
+	password: '123456',
 	isActive: true,
-	roles: [{ id: 4 }]
+	roles: [
+		{
+			id: 4
+		}
+	]
 }
 
-const res: Omit<UserDto, 'password'> = {
-	id: 'bcaddb03-e76e-49fd-b495-a513192be640',
-	firstName: 'Jest FirstName',
-	lastName: 'Jest LastName',
-	email: 'jest@example.com',
-	username: 'jest_test',
-	createdAt: new Date('2024-10-11T15:43:15.133Z'),
+export const response: Omit<UserDto, 'password'> = {
+	id: 'e808e8a7-276f-450e-a776-0a19db0601dc',
+	firstName: 'Test Jest',
+	lastName: 'Test Jest ',
+	username: 'test_jest',
+	email: 'test@example.com',
+	createdAt: '2024-10-12T12:30:45.572Z',
 	isActive: true,
-	updatedAt: new Date('2024-10-11T15:43:15.133Z'),
+	updatedAt: '2024-10-12T12:30:45.572Z',
 	roles: ['USER']
 }
 
-describe('User module Controller and Service e2e Test', () => {
+describe('User (e2e)', () => {
 	const params: PaginationParams = {
 		page: 0,
 		pageSize: 10,
@@ -82,7 +89,7 @@ describe('User module Controller and Service e2e Test', () => {
 		expect(params.pageSize).toBeGreaterThanOrEqual(1)
 
 		if (status >= 200 && status < 300) {
-			expect(body).toContainEqual([res])
+			expect(body).toContainEqual(Array(response))
 		} else {
 			buildException(status, body)
 		}
@@ -93,7 +100,7 @@ describe('User module Controller and Service e2e Test', () => {
 	test('GET: /user/:id ', async () => {
 		const { body, status } = await request.get(`/user/${id}`)
 		if (status >= 200 && status < 300) {
-			expect(body).toEqual(expect.objectContaining(res))
+			expect(body).toEqual(expect.objectContaining(response))
 		} else {
 			buildException(status, body)
 		}
@@ -104,7 +111,7 @@ describe('User module Controller and Service e2e Test', () => {
 	test('GET: /user/email/:email ', async () => {
 		const { body, status } = await request.get(`/user/email/${email}`)
 		if (status >= 200 && status < 300) {
-			expect(body).toEqual(expect.objectContaining(res))
+			expect(body).toEqual(expect.objectContaining(response))
 		} else {
 			buildException(status, body)
 		}
@@ -115,7 +122,7 @@ describe('User module Controller and Service e2e Test', () => {
 	test('GET: /user/username/:username ', async () => {
 		const { body, status } = await request.get(`/user/username/${username}`)
 		if (status >= 200 && status < 300) {
-			expect(body).toEqual(expect.objectContaining(res))
+			expect(body).toEqual(expect.objectContaining(response))
 		} else {
 			buildException(status, body)
 		}
@@ -127,7 +134,7 @@ describe('User module Controller and Service e2e Test', () => {
 		const { body, status } = await request.post('/user').send(req)
 		if (status >= 200 && status < 300) {
 			expect(status).toBe(200)
-			expect(body).toEqual(expect.objectContaining(res))
+			expect(body).toEqual(expect.objectContaining(response))
 		} else {
 			buildException(status, body)
 		}
@@ -141,7 +148,7 @@ describe('User module Controller and Service e2e Test', () => {
 			...req
 		})
 		if (status >= 200 && status < 300) {
-			expect(body).toEqual(expect.objectContaining(res))
+			expect(body).toEqual(expect.objectContaining(response))
 		} else {
 			buildException(status, body)
 		}
@@ -170,7 +177,7 @@ describe('User module Controller and Service e2e Test', () => {
 	})
 })
 
-const buildException = (
+export const buildException = (
 	status: number,
 	body: { message: string; error: string }
 ) => {
