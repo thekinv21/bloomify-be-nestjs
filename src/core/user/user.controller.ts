@@ -27,6 +27,7 @@ import { UserService } from './user.service'
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe())
+@UseGuards(JwtAuthGuard)
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 

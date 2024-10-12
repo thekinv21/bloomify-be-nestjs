@@ -25,10 +25,10 @@ export class UserDto {
 	password: string
 
 	@Expose()
-	createdAt: Date | null
+	createdAt: string | null
 
 	@Expose()
-	updatedAt: Date | null
+	updatedAt: string | null
 
 	@Expose()
 	@Transform(({ obj }: { obj: IUser }) =>

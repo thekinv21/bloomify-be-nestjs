@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { SwaggerModule } from '@nestjs/swagger'
-import { AppModule } from './app.module'
+import { AppModule } from './app/app.module'
 
 import { ApiResponseInterceptor, GlobalExceptionFilter } from './common'
 import { swagger } from './config'

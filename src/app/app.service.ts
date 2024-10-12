@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 
 @Injectable()
 export class AppService {
-	hello() {
+	starter() {
 		return `NestJS Application Successfully Works`
 	}
 }
