@@ -23,7 +23,7 @@ afterAll(async () => {
 	await app.close()
 })
 
-describe('App module Controller and Service e2e Test', () => {
+describe('App (e2e)', () => {
 	test('GET: /api ', async () => {
 		const { body, status } = await request.get(`/api`)
 
